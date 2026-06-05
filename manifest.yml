@@ -1,0 +1,24 @@
+modules:
+  jira:projectPage:
+    - key: jira-project-assistant-page
+      resource: main
+      resolver:
+        function: resolver
+      viewportSize: medium
+      title: Hello World!
+      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/hello-world/build
+permissions:
+  scopes:
+    - read:jira-work
+app:
+  runtime:
+    name: nodejs24.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/72ca92c5-0870-443d-96ce-60caf720e62f
