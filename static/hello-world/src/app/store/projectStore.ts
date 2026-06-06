@@ -8,7 +8,8 @@ type ProjectStore = {
   issues: JiraIssue[];
   isProjectsLoading: boolean;
   isIssuesLoading: boolean;
-  error: string | null;
+  projectsError: string | null;
+  issuesError: string | null;
 
   loadProjects: () => Promise<void>;
   setSelectedProject: (project: JiraProject) => void;
@@ -21,10 +22,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   issues: [],
   isProjectsLoading: false,
   isIssuesLoading: false,
-  error: null,
+  projectsError: null,
+  issuesError: null,
 
   loadProjects: async () => {
-    set({ isProjectsLoading: true, error: null });
+    set({ isProjectsLoading: true, projectsError: null });
 
     try {
       const projects = await getJiraProjects();
@@ -35,7 +37,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         set({ issues });
       }
     } catch {
-      set({ error: 'Failed to load Jira projects' });
+      set({ projectsError: 'Failed to load Jira projects' });
     } finally {
       set({ isProjectsLoading: false });
     }
@@ -52,13 +54,13 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   loadIssuesByProject: async (project) => {
-    set({ issues: [], isIssuesLoading: true, error: null });
+    set({ issues: [], isIssuesLoading: true, issuesError: null });
 
     try {
       const issues = await getIssuesByProject(project.key);
       set({ issues });
     } catch {
-      set({ error: 'Failed to load Jira issues' });
+      set({ issuesError: 'Failed to load Jira issues' });
     } finally {
       set({ isIssuesLoading: false });
     }

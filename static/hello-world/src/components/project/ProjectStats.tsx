@@ -2,11 +2,14 @@ import { Alert, Box, Paper, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useProjectStore } from '../../app/store/projectStore';
 import { isLowPriority, isNearDeadline } from '../../features/utils/issueHealth';
+import { EmptyState } from '../common/EmptyState';
+import { ErrorState } from '../common/ErrorState';
+import { LoadingState } from '../common/LoadingState';
 
 export function ProjectStats() {
   const issues = useProjectStore((state) => state.issues);
   const isIssuesLoading = useProjectStore((state) => state.isIssuesLoading);
-  const error = useProjectStore((state) => state.error);
+  const issuesError = useProjectStore((state) => state.issuesError);
 
   const stats = useMemo(() => {
     const unassigned = issues.filter((issue) => !issue.fields.assignee).length;
@@ -27,11 +30,22 @@ export function ProjectStats() {
     };
   }, [issues]);
 
-  if (isIssuesLoading) return <Typography>Loading project statistics...</Typography>;
+  if (isIssuesLoading) {
+    return <LoadingState message="Loading project issues..." />;
+  }
 
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (issuesError) {
+    return <ErrorState message={issuesError} />;
+  }
 
-  if (issues.length === 0) return <Typography color="text.secondary">No issues loaded.</Typography>;
+  if (issues.length === 0) {
+    return (
+      <EmptyState
+        title="No issues found"
+        description="This project does not have issues matching the current request."
+      />
+    );
+  }
 
   return (
     <Box

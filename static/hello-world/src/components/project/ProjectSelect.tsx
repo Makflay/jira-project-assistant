@@ -1,6 +1,8 @@
 import { Alert, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { useProjectStore } from '../../app/store/projectStore';
+import { EmptyState } from '../common/EmptyState';
+import { ErrorState } from '../common/ErrorState';
 
 export function ProjectSelect() {
   const projects = useProjectStore((state) => state.projects);
@@ -8,7 +10,7 @@ export function ProjectSelect() {
   const setSelectedProject = useProjectStore((state) => state.setSelectedProject);
   const loadIssuesByProject = useProjectStore((state) => state.loadIssuesByProject);
   const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
-  const error = useProjectStore((state) => state.error);
+  const projectsError = useProjectStore((state) => state.projectsError);
 
   const handleChange = async (event: SelectChangeEvent) => {
     const project = projects.find((p) => p.key === event.target.value);
@@ -19,8 +21,17 @@ export function ProjectSelect() {
     await loadIssuesByProject(project);
   };
 
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
+  if (!selectedProject) {
+    return (
+      <EmptyState
+        title="Select a project"
+        description="Choose a Jira project to see its statistics."
+      />
+    );
+  }
+
+  if (projectsError) {
+    return <ErrorState message={projectsError} />;
   }
 
   return (

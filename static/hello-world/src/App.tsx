@@ -5,23 +5,36 @@ import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProjectSelect } from './components/project/ProjectSelect';
 import { ProjectStats } from './components/project/ProjectStats';
+import { EmptyState } from './components/common/EmptyState';
+import { ErrorState } from './components/common/ErrorState';
+import { LoadingState } from './components/common/LoadingState';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
   const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
-  const isIssuesLoading = useProjectStore((state) => state.isIssuesLoading);
-  const error = useProjectStore((state) => state.error);
+  const projectsError = useProjectStore((state) => state.projectsError);
   const loadProjects = useProjectStore((state) => state.loadProjects);
 
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
 
-  if (isProjectsLoading) return <Typography>Loading projects...</Typography>;
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (isProjectsLoading) {
+    return <LoadingState message="Loading Jira projects..." />;
+  }
 
-  if (isIssuesLoading) return <Typography>Loading issues...</Typography>;
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (projectsError) {
+    return <ErrorState message={projectsError} />;
+  }
+
+  if (projects.length === 0) {
+    return (
+      <EmptyState
+        title="No Jira projects found"
+        description="You do not have access to any Jira projects yet."
+      />
+    );
+  }
 
   return (
     <AppProviders>
