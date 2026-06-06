@@ -1,0 +1,7 @@
+node_modules
+static/hello-world/node_modules
+.git
+.env
+dist
+static/hello-world/dist
+static/hello-world/build
