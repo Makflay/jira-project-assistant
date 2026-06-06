@@ -11,7 +11,10 @@ import {
 } from '@mui/material';
 import type { JiraIssue } from '../../types/jira';
 import { formatDate } from '../../features/utils/formatters';
-import { isUnassignedIssue } from '../../features/utils/issueHealth';
+import {
+  isUnassignedIssue,
+  isLowPriorityNearDeadLineIssue,
+} from '../../features/utils/issueHealth';
 
 type IssuesTableProps = {
   issues: JiraIssue[];
@@ -36,11 +39,16 @@ export function IssuesTable({ issues }: IssuesTableProps) {
         <TableBody>
           {issues.map((issue) => {
             const isUnassigned = isUnassignedIssue(issue);
+            const isLowPriorityNearDeadline = isLowPriorityNearDeadLineIssue(issue);
             return (
               <TableRow
                 key={issue.id}
                 sx={{
-                  bgcolor: isUnassigned ? 'error.light' : 'inherit',
+                  bgcolor: isUnassigned
+                    ? 'rgba(211, 47, 47, 0.08)'
+                    : isLowPriorityNearDeadline
+                      ? 'rgba(237, 108, 2, 0.08)'
+                      : 'inherit',
                 }}
               >
                 <TableCell>{issue.key}</TableCell>
