@@ -8,9 +8,11 @@ import { ProjectStats } from './components/project/ProjectStats';
 import { EmptyState } from './components/common/EmptyState';
 import { ErrorState } from './components/common/ErrorState';
 import { LoadingState } from './components/common/LoadingState';
+import { IssuesTable } from './components/issues/IssuesTable';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
+  const issues = useProjectStore((state) => state.issues);
   const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
   const projectsError = useProjectStore((state) => state.projectsError);
   const loadProjects = useProjectStore((state) => state.loadProjects);
@@ -49,6 +51,7 @@ function App() {
         </Box>
         <ProjectSelect />
         <ProjectStats />
+        {issues.length > 0 && <IssuesTable issues={issues} />}
       </AppLayout>
     </AppProviders>
   );
