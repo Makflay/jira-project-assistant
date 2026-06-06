@@ -20,6 +20,7 @@
     "vite": "^8.0.16"
   },
   "scripts": {
+    "dev": "vite",
     "start": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview"

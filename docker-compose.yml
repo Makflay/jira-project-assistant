@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+    working_dir: /app/static/hello-world
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/static/hello-world/node_modules
