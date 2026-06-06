@@ -8,12 +8,14 @@ import {
   Typography,
   Paper,
   Chip,
+  Button,
 } from '@mui/material';
 import type { JiraIssue } from '../../types/jira';
 import { formatDate } from '../../features/utils/formatters';
 import {
   isUnassignedIssue,
-  isLowPriorityNearDeadLineIssue,
+  isLowPriorityNearDeadlineIssue,
+  getIssueProblems,
 } from '../../features/utils/issueHealth';
 
 type IssuesTableProps = {
@@ -21,6 +23,9 @@ type IssuesTableProps = {
 };
 
 export function IssuesTable({ issues }: IssuesTableProps) {
+  const handleFixClick = (issue: JiraIssue) => {
+    console.log('Fix issue', issue);
+  };
   return (
     <TableContainer component={Paper}>
       <Table size="small">
@@ -39,7 +44,9 @@ export function IssuesTable({ issues }: IssuesTableProps) {
         <TableBody>
           {issues.map((issue) => {
             const isUnassigned = isUnassignedIssue(issue);
-            const isLowPriorityNearDeadline = isLowPriorityNearDeadLineIssue(issue);
+            const isLowPriorityNearDeadline = isLowPriorityNearDeadlineIssue(issue);
+            const problems = getIssueProblems(issue);
+            const isFixable = problems.length > 0;
             return (
               <TableRow
                 key={issue.id}
@@ -72,9 +79,13 @@ export function IssuesTable({ issues }: IssuesTableProps) {
                 </TableCell>
                 <TableCell>{formatDate(issue.fields.duedate)}</TableCell>
                 <TableCell>
-                  <Typography variant="body2" color="text.secondary">
-                    -
-                  </Typography>
+                  {isFixable ? (
+                    <Button size="small" variant="outlined" onClick={() => handleFixClick(issue)}>
+                      Fix
+                    </Button>
+                  ) : (
+                    '-'
+                  )}
                 </TableCell>
               </TableRow>
             );
