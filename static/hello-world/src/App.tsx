@@ -1,46 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
-import type { JiraProject, JiraIssue } from './types/jira';
-import { getJiraProjects, getIssuesByProject } from './services/jiraApi';
+import { useProjectStore } from './store/projectStore';
 
 function App() {
-  const [projects, setProjects] = useState<JiraProject[]>([]);
-  const [selectedProject, setSelectedProject] = useState<JiraProject | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [issues, setIssues] = useState<JiraIssue[]>([]);
-  const [isIssuesLoading, setIsIssuesLoading] = useState(false);
-  const [issuesError, setIssuesError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getJiraProjects()
-      .then((loadedProjects) => {
-        setProjects(loadedProjects);
-        setSelectedProject(loadedProjects[0] ?? null);
-      })
-      .catch(() => setError('Failed to load Jira projects'))
-      .finally(() => setIsLoading(false));
-  }, []);
+  const projects = useProjectStore((state) => state.projects);
+  const selectedProject = useProjectStore((state) => state.selectedProject);
+  const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
+  const isIssuesLoading = useProjectStore((state) => state.isIssuesLoading);
+  const error = useProjectStore((state) => state.error);
+  const issues = useProjectStore((state) => state.issues);
+  const selectProject = useProjectStore((state) => state.selectProject);
+  const loadProjects = useProjectStore((state) => state.loadProjects);
 
   useEffect(() => {
-    if (!selectedProject) return;
+    loadProjects();
+  }, [loadProjects]);
 
-    setIsIssuesLoading(true);
-    setIssuesError(null);
-
-    getIssuesByProject(selectedProject.key)
-      .then(setIssues)
-      .catch(() => setIssuesError('Failed to load Jira issues'))
-      .finally(() => setIsIssuesLoading(false));
-  }, [selectedProject]);
-
-  if (isLoading) return <Typography>Loading projects...</Typography>;
+  if (isProjectsLoading) return <Typography>Loading projects...</Typography>;
   if (error) return <Alert severity="error">{error}</Alert>;
 
   if (isIssuesLoading) return <Typography>Loading issues...</Typography>;
-  if (issuesError) return <Alert severity="error">{issuesError}</Alert>;
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
     <AppProviders>
@@ -60,13 +41,19 @@ function App() {
       <Box sx={{ mt: 2 }}>
         <Typography variant="h6">Selected Project</Typography>
 
-        {selectedProject ? (
+        {selectProject ? (
           <Typography>
-            {selectedProject.key} - {selectedProject.name}
+            {selectedProject?.key} - {selectProject.name}
           </Typography>
         ) : (
           <Typography>No project selected</Typography>
         )}
+      </Box>
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="h6">Project Issues</Typography>
+        {issues.map((issue) => (
+          <Typography key={issue.id}>{issue.key}</Typography>
+        ))}
       </Box>
     </AppProviders>
   );
