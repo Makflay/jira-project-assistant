@@ -1,6 +1,6 @@
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import type { PropsWithChildren } from 'react';
-import { theme } from '../theme/theme';
+import { theme } from './theme/theme';
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (

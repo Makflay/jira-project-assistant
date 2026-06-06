@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { JiraIssue, JiraProject } from '../types/jira';
-import { getIssuesByProject, getJiraProjects } from '../services/jiraApi';
+import type { JiraIssue, JiraProject } from '../../types/jira';
+import { getIssuesByProject, getJiraProjects } from '../../services/jiraApi';
 
 type ProjectStore = {
   projects: JiraProject[];

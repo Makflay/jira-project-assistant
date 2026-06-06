@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
-import { useProjectStore } from './store/projectStore';
+import { useProjectStore } from './app/store/projectStore';
+import { AppLayout } from './components/layout/AppLayout';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -25,36 +26,33 @@ function App() {
 
   return (
     <AppProviders>
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h5" component="h1">
-          Jira Project Assistant
-        </Typography>
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6">Projects</Typography>
-        {projects.map((project) => (
-          <Typography key={project.id}>
-            {project.key} - {project.name}
-          </Typography>
-        ))}
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6">Selected Project</Typography>
+      <AppLayout>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Projects</Typography>
+          {projects.map((project) => (
+            <Typography key={project.id}>
+              {project.key} - {project.name}
+            </Typography>
+          ))}
+        </Box>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Selected Project</Typography>
 
-        {selectProject ? (
-          <Typography>
-            {selectedProject?.key} - {selectProject.name}
-          </Typography>
-        ) : (
-          <Typography>No project selected</Typography>
-        )}
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="h6">Project Issues</Typography>
-        {issues.map((issue) => (
-          <Typography key={issue.id}>{issue.key}</Typography>
-        ))}
-      </Box>
+          {selectProject ? (
+            <Typography>
+              {selectedProject?.key} - {selectProject.name}
+            </Typography>
+          ) : (
+            <Typography>No project selected</Typography>
+          )}
+        </Box>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6">Project Issues</Typography>
+          {issues.map((issue) => (
+            <Typography key={issue.id}>{issue.key}</Typography>
+          ))}
+        </Box>
+      </AppLayout>
     </AppProviders>
   );
 }
