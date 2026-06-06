@@ -1,4 +1,4 @@
-import { Alert, Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useProjectStore } from '../../app/store/projectStore';
 import { isLowPriority, isNearDeadline } from '../../features/utils/issueHealth';

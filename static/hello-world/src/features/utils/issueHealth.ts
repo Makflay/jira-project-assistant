@@ -1,3 +1,5 @@
+import type { JiraIssue } from '../../types/jira';
+
 const DAY_MS = 1000 * 60 * 60 * 24;
 const NEAR_DEADLINE_DAYS = 3;
 
@@ -20,3 +22,7 @@ export const isLowPriority = (priorityName?: string | null): boolean => {
 
   return normalized === 'low' || normalized === 'lowest';
 };
+
+export function isUnassignedIssue(issue: JiraIssue) {
+  return !issue.fields.assignee;
+}

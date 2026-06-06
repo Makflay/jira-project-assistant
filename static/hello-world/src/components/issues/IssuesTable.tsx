@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import type { JiraIssue } from '../../types/jira';
 import { formatDate } from '../../features/utils/formatters';
+import { isUnassignedIssue } from '../../features/utils/issueHealth';
 
 type IssuesTableProps = {
   issues: JiraIssue[];
@@ -33,29 +34,43 @@ export function IssuesTable({ issues }: IssuesTableProps) {
         </TableHead>
 
         <TableBody>
-          {issues.map((issue) => (
-            <TableRow key={issue.id}>
-              <TableCell>{issue.key}</TableCell>
-              <TableCell>{issue.fields.summary}</TableCell>
-              <TableCell>
-                <Chip size="small" label={issue.fields.status.name} />
-              </TableCell>
-              <TableCell>{issue.fields.assignee?.displayName ?? 'Unassigned'}</TableCell>
-              <TableCell>
-                <Chip
-                  size="small"
-                  variant="outlined"
-                  label={issue.fields.priority?.name ?? 'No priority'}
-                />
-              </TableCell>
-              <TableCell>{formatDate(issue.fields.duedate)}</TableCell>
-              <TableCell>
-                <Typography variant="body2" color="text.secondary">
-                  -
-                </Typography>
-              </TableCell>
-            </TableRow>
-          ))}
+          {issues.map((issue) => {
+            const isUnassigned = isUnassignedIssue(issue);
+            return (
+              <TableRow
+                key={issue.id}
+                sx={{
+                  bgcolor: isUnassigned ? 'error.light' : 'inherit',
+                }}
+              >
+                <TableCell>{issue.key}</TableCell>
+                <TableCell>{issue.fields.summary}</TableCell>
+                <TableCell>
+                  <Chip size="small" label={issue.fields.status.name} />
+                </TableCell>
+                <TableCell>
+                  {isUnassigned ? (
+                    <Chip size="small" color="error" label="Unassigned" />
+                  ) : (
+                    issue.fields.assignee?.displayName
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={issue.fields.priority?.name ?? 'No priority'}
+                  />
+                </TableCell>
+                <TableCell>{formatDate(issue.fields.duedate)}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    -
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>
