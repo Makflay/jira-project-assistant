@@ -4,13 +4,13 @@ import { AppProviders } from './app/AppProviders';
 import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProjectSelect } from './components/project/ProjectSelect';
+import { ProjectStats } from './components/project/ProjectStats';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
   const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
   const isIssuesLoading = useProjectStore((state) => state.isIssuesLoading);
   const error = useProjectStore((state) => state.error);
-  const issues = useProjectStore((state) => state.issues);
   const loadProjects = useProjectStore((state) => state.loadProjects);
 
   useEffect(() => {
@@ -35,12 +35,7 @@ function App() {
           ))}
         </Box>
         <ProjectSelect />
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="h6">Project Issues</Typography>
-          {issues.map((issue) => (
-            <Typography key={issue.id}>{issue.key}</Typography>
-          ))}
-        </Box>
+        <ProjectStats />
       </AppLayout>
     </AppProviders>
   );

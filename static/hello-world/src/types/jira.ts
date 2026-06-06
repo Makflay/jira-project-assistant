@@ -35,6 +35,7 @@ export interface JiraIssueFields {
   summary: string;
   status: JiraStatus;
   priority?: JiraPriority;
+  duedate?: string | null;
   assignee?: JiraUser | null;
   reporter?: JiraUser | null;
   createdAt: string;
