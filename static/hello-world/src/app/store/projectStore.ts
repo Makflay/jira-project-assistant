@@ -9,11 +9,13 @@ type ProjectStore = {
   isProjectsLoading: boolean;
   isIssuesLoading: boolean;
   error: string | null;
+
   loadProjects: () => Promise<void>;
-  selectProject: (project: JiraProject) => Promise<void>;
+  setSelectedProject: (project: JiraProject) => void;
+  loadIssuesByProject: (project: JiraProject) => Promise<void>;
 };
 
-export const useProjectStore = create<ProjectStore>((set) => ({
+export const useProjectStore = create<ProjectStore>((set, get) => ({
   projects: [],
   selectedProject: null,
   issues: [],
@@ -39,8 +41,18 @@ export const useProjectStore = create<ProjectStore>((set) => ({
     }
   },
 
-  selectProject: async (project) => {
-    set({ selectedProject: project, issues: [], isIssuesLoading: true, error: null });
+  setSelectedProject: (project) => {
+    const current = get().selectedProject;
+
+    if (current?.key === project.key) {
+      return;
+    }
+
+    set({ selectedProject: project });
+  },
+
+  loadIssuesByProject: async (project) => {
+    set({ issues: [], isIssuesLoading: true, error: null });
 
     try {
       const issues = await getIssuesByProject(project.key);

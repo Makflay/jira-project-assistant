@@ -3,15 +3,14 @@ import { Box, Typography, Alert } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
 import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
+import { ProjectSelect } from './components/project/ProjectSelect';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
-  const selectedProject = useProjectStore((state) => state.selectedProject);
   const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
   const isIssuesLoading = useProjectStore((state) => state.isIssuesLoading);
   const error = useProjectStore((state) => state.error);
   const issues = useProjectStore((state) => state.issues);
-  const selectProject = useProjectStore((state) => state.selectProject);
   const loadProjects = useProjectStore((state) => state.loadProjects);
 
   useEffect(() => {
@@ -35,17 +34,7 @@ function App() {
             </Typography>
           ))}
         </Box>
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="h6">Selected Project</Typography>
-
-          {selectProject ? (
-            <Typography>
-              {selectedProject?.key} - {selectProject.name}
-            </Typography>
-          ) : (
-            <Typography>No project selected</Typography>
-          )}
-        </Box>
+        <ProjectSelect />
         <Box sx={{ mt: 2 }}>
           <Typography variant="h6">Project Issues</Typography>
           {issues.map((issue) => (
