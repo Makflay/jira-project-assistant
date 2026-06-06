@@ -7,8 +7,10 @@ import {
   TableRow,
   Typography,
   Paper,
+  Chip,
 } from '@mui/material';
 import type { JiraIssue } from '../../types/jira';
+import { formatDate } from '../../features/utils/formatters';
 
 type IssuesTableProps = {
   issues: JiraIssue[];
@@ -25,6 +27,7 @@ export function IssuesTable({ issues }: IssuesTableProps) {
             <TableCell>Status</TableCell>
             <TableCell>Assignee</TableCell>
             <TableCell>Priority</TableCell>
+            <TableCell>Due date</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -34,9 +37,18 @@ export function IssuesTable({ issues }: IssuesTableProps) {
             <TableRow key={issue.id}>
               <TableCell>{issue.key}</TableCell>
               <TableCell>{issue.fields.summary}</TableCell>
-              <TableCell>{issue.fields.status.name}</TableCell>
+              <TableCell>
+                <Chip size="small" label={issue.fields.status.name} />
+              </TableCell>
               <TableCell>{issue.fields.assignee?.displayName ?? 'Unassigned'}</TableCell>
-              <TableCell>{issue.fields.priority?.name ?? 'No priority'}</TableCell>
+              <TableCell>
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={issue.fields.priority?.name ?? 'No priority'}
+                />
+              </TableCell>
+              <TableCell>{formatDate(issue.fields.duedate)}</TableCell>
               <TableCell>
                 <Typography variant="body2" color="text.secondary">
                   -
