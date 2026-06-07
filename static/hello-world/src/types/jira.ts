@@ -18,6 +18,7 @@ export interface JiraUser {
   emailAddress?: string;
   avatarUrls?: Record<string, string>;
   active?: boolean;
+  accountType?: string;
 }
 
 export interface JiraStatus {
