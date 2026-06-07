@@ -9,9 +9,10 @@ import { EmptyState } from './components/common/EmptyState';
 import { ErrorState } from './components/common/ErrorState';
 import { LoadingState } from './components/common/LoadingState';
 import { IssuesTable } from './components/issues/IssuesTable';
+import { PriorityIssueDialog } from './components/issues/PriorityIssueDialog';
 import type { JiraIssue } from './types/jira';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
-import { isUnassignedIssue } from './features/utils/issueHealth';
+import { getIssueProblems } from './features/utils/issueHealth';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -22,7 +23,13 @@ function App() {
 
   const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null);
   const isFixDialogOpen = selectedIssue !== null;
-  const isAssignDialogOpen = selectedIssue ? isUnassignedIssue(selectedIssue) : false;
+  //const isAssignDialogOpen = selectedIssue ? isUnassignedIssue(selectedIssue) : false;
+  const selectedIssueProblems = selectedIssue ? getIssueProblems(selectedIssue) : [];
+  const shouldOpenAssignDialog = isFixDialogOpen && selectedIssueProblems.includes('unassigned');
+  const shouldOpenPriorityDialog =
+    isFixDialogOpen &&
+    !shouldOpenAssignDialog &&
+    selectedIssueProblems.includes('lowPriorityNearDeadline');
 
   useEffect(() => {
     loadProjects();
@@ -54,11 +61,19 @@ function App() {
           </Stack>
         )}
         {isFixDialogOpen && (
-          <AssignIssueDialog
-            open={isAssignDialogOpen}
-            issue={selectedIssue}
-            onClose={handleCloseFixDialog}
-          />
+          <>
+            <AssignIssueDialog
+              open={shouldOpenPriorityDialog}
+              issue={selectedIssue}
+              onClose={handleCloseFixDialog}
+            />
+
+            <PriorityIssueDialog
+              open={shouldOpenPriorityDialog}
+              issue={selectedIssue}
+              onClose={handleCloseFixDialog}
+            />
+          </>
         )}
       </AppLayout>
     </AppProviders>
