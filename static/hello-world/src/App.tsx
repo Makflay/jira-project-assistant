@@ -20,6 +20,9 @@ function App() {
   const isProjectsLoading = useProjectStore((state) => state.isProjectsLoading);
   const projectsError = useProjectStore((state) => state.projectsError);
   const loadProjects = useProjectStore((state) => state.loadProjects);
+  const selectedProject = useProjectStore((state) => state.selectedProject);
+  const loadIssuesByProject = useProjectStore((state) => state.loadIssuesByProject);
+  const updateIssuePriority = useProjectStore((state) => state.updateIssuePriority);
 
   const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null);
   const isFixDialogOpen = selectedIssue !== null;
@@ -37,6 +40,12 @@ function App() {
 
   const handleCloseFixDialog = () => {
     setSelectedIssue(null);
+  };
+
+  const reloadIssues = async () => {
+    if (!selectedProject) return;
+
+    await loadIssuesByProject(selectedProject);
   };
 
   return (
@@ -72,6 +81,8 @@ function App() {
               open={shouldOpenPriorityDialog}
               issue={selectedIssue}
               onClose={handleCloseFixDialog}
+              reloadIssues={reloadIssues}
+              updateIssuePriority={updateIssuePriority}
             />
           </>
         )}

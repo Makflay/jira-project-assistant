@@ -103,4 +103,36 @@ resolver.define("assignIssue", async ({ payload }) => {
   return { success: true };
 });
 
+resolver.define("updateIssuePriority", async ({ payload }) => {
+  const { issueKey, priorityId } = payload as {
+    issueKey: string;
+    priorityId: string;
+  };
+
+  if (!issueKey || !priorityId) {
+    throw new Error("Issue key and priority id are required");
+  }
+
+  const res = await api
+    .asUser()
+    .requestJira(route`/rest/api/3/issue/${issueKey}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fields: {
+          priority: {
+            id: priorityId,
+          },
+        },
+      }),
+    });
+
+  if (!res.ok) {
+    throw new Error(`Failed to update issue priority: ${res.status}`);
+  }
+});
+
 export const handler = resolver.getDefinitions();

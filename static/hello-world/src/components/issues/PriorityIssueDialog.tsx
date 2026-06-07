@@ -5,39 +5,67 @@ import {
   Radio,
   RadioGroup,
   Typography,
+  Alert,
 } from '@mui/material';
 import { useState } from 'react';
 import { BaseDialog } from '../common/BaseDialog';
-import type { JiraIssue } from '../../types/jira';
+import type { JiraIssue, JiraPriority } from '../../types/jira';
+import { updateIssuePriority as updateIssuePriorityReq } from '../../services/jiraApi';
 
 type PriorityIssueDialogProps = {
   open: boolean;
   issue: JiraIssue | null;
   onClose: () => void;
+  reloadIssues: () => Promise<void>;
+  updateIssuePriority: (issueKey: string, priority: JiraPriority | undefined) => void;
 };
 
-const priorityOptions = [
-  { value: 'Medium', label: 'Medium' },
-  { value: 'High', label: 'High' },
+const priorityOptions: JiraPriority[] = [
+  { id: '3', name: 'Medium' },
+  { id: '2', name: 'High' },
+  { id: '1', name: 'Highest' },
 ];
 
-export function PriorityIssueDialog({ open, issue, onClose }: PriorityIssueDialogProps) {
-  const [selectedPriority, setSelectedPriority] = useState('');
+export function PriorityIssueDialog({
+  open,
+  issue,
+  onClose,
+  reloadIssues,
+  updateIssuePriority,
+}: PriorityIssueDialogProps) {
+  const [selectedPriorityId, setSelectedPriorityId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleClose = () => {
-    setSelectedPriority('');
+    setSelectedPriorityId('');
     onClose();
   };
 
   const handlePriorityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedPriority(event.target.value);
+    setSelectedPriorityId(event.target.value);
   };
 
-  const handleConfirm = () => {
-    if (!issue || !selectedPriority) return;
+  const handleConfirm = async () => {
+    const nextPriority = priorityOptions.find((priority) => priority.id === selectedPriorityId);
+    if (!issue || !selectedPriorityId) return;
 
-    console.log('Update priority', issue.key, selectedPriority);
-    handleClose();
+    const previousPriority = issue.fields.priority ?? undefined;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    updateIssuePriority(issue.key, nextPriority);
+
+    try {
+      await updateIssuePriorityReq(issue.key, selectedPriorityId);
+      handleClose();
+      await reloadIssues();
+    } catch {
+      updateIssuePriority(issue.key, previousPriority);
+      setSubmitError('Failed to update issue priority');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -48,24 +76,29 @@ export function PriorityIssueDialog({ open, issue, onClose }: PriorityIssueDialo
       actions={
         <>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button variant="contained" disabled={!selectedPriority} onClick={handleConfirm}>
-            Confirm
+          <Button
+            variant="contained"
+            disabled={!selectedPriorityId || isSubmitting}
+            onClick={handleConfirm}
+          >
+            {isSubmitting ? 'Updating...' : 'Confirm'}
           </Button>
         </>
       }
     >
+      {submitError && <Alert severity="error">{submitError}</Alert>}
       <Typography sx={{ mb: 2 }}>
         This issue has low priority and a near deadline. Choose a higher priority.
       </Typography>
 
       <FormControl>
-        <RadioGroup value={selectedPriority} onChange={handlePriorityChange}>
+        <RadioGroup value={selectedPriorityId} onChange={handlePriorityChange}>
           {priorityOptions.map((priority) => (
             <FormControlLabel
-              key={priority.value}
-              value={priority.value}
+              key={priority.id}
+              value={priority.id}
               control={<Radio />}
-              label={priority.label}
+              label={priority.name}
             />
           ))}
         </RadioGroup>

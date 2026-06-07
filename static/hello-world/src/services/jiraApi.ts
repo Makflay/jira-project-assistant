@@ -15,3 +15,7 @@ export function getProjectAssignableUsers(projectKey: string) {
 export function assignIssue(issueKey: string, accountId: string) {
   return invoke('assignIssue', { issueKey, accountId });
 }
+
+export function updateIssuePriority(issueKey: string, priorityId: string) {
+  return invoke('updateIssuePriority', { issueKey, priorityId });
+}
