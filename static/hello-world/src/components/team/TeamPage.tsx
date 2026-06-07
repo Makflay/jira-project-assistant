@@ -7,16 +7,18 @@ import {
   ListItemAvatar,
   ListItemText,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { EmptyState } from '../common/EmptyState';
 import { ErrorState } from '../common/ErrorState';
 import { LoadingState } from '../common/LoadingState';
 import { useProjectStore } from '../../app/store/projectStore';
 import { getProjectAssignableUsers } from '../../services/jiraApi';
 import type { JiraUser } from '../../types/jira';
+import { getAssignedIssuesCountByUser } from '../../features/utils/teamStats';
 
 export function TeamPage() {
   const selectedProject = useProjectStore((state) => state.selectedProject);
+  const issues = useProjectStore((state) => state.issues);
 
   const [teamMembers, setTeamMembers] = useState<JiraUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +38,8 @@ export function TeamPage() {
       .catch(() => setError('Failed to load project team members'))
       .finally(() => setIsLoading(false));
   }, [selectedProject]);
+
+  const assignedIssuesCountByUser = useMemo(() => getAssignedIssuesCountByUser(issues), [issues]);
 
   if (!selectedProject) {
     return (
@@ -69,25 +73,33 @@ export function TeamPage() {
         Team
       </Typography>
       <List>
-        {teamMembers.map((user) => (
-          <ListItem key={user.accountId} divider>
-            <ListItemAvatar>
-              <Avatar src={user.avatarUrls?.['48x48']} alt={user.displayName}>
-                {user.displayName[0]}
-              </Avatar>
-            </ListItemAvatar>
+        {teamMembers.map((user) => {
+          const assignedIssuesCount = assignedIssuesCountByUser[user.accountId] ?? 0;
+          return (
+            <ListItem key={user.accountId} divider>
+              <ListItemAvatar>
+                <Avatar src={user.avatarUrls?.['48x48']} alt={user.displayName}>
+                  {user.displayName[0]}
+                </Avatar>
+              </ListItemAvatar>
 
-            <ListItemText
-              primary={user.displayName}
-              secondary={[
-                user.accountType ? `Type: ${user.accountType}` : null,
-                user.active === undefined ? 'Status unknown' : user.active ? 'Active' : 'Inactive',
-              ]
-                .filter(Boolean)
-                .join(' • ')}
-            />
-          </ListItem>
-        ))}
+              <ListItemText
+                primary={user.displayName}
+                secondary={[
+                  `Assigned issues: ${assignedIssuesCount}`,
+                  user.accountType ? `Type: ${user.accountType}` : null,
+                  user.active === undefined
+                    ? 'Status unknown'
+                    : user.active
+                      ? 'Active'
+                      : 'Inactive',
+                ]
+                  .filter(Boolean)
+                  .join(' • ')}
+              />
+            </ListItem>
+          );
+        })}
       </List>
     </Paper>
   );
