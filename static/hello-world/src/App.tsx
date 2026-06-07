@@ -12,6 +12,7 @@ import { IssuesTable } from './components/issues/IssuesTable';
 import { PriorityIssueDialog } from './components/issues/PriorityIssueDialog';
 import type { JiraIssue } from './types/jira';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
+import { ConfirmAutoAssignDialog } from './components/issues/ConfirmAutoAssignDialog';
 import { isUnassignedIssue } from './features/utils/issueHealth';
 
 function App() {
@@ -26,6 +27,8 @@ function App() {
 
   const [issueToAssign, setIssueToAssign] = useState<JiraIssue | null>(null);
   const [issueToRaisePriority, setIssueToRaisePriority] = useState<JiraIssue | null>(null);
+  const [isAutoAssignDialogOpen, setIsAutoAssignDialogOpen] = useState(false);
+
   const unassignedIssuesCount = issues.filter(isUnassignedIssue).length;
 
   useEffect(() => {
@@ -38,13 +41,23 @@ function App() {
     await loadIssuesByProject(selectedProject);
   };
 
-  const handleAutoAssignUnassigned = () => {
+  const handleOpenAutoAssignDialog = () => {
+    setIsAutoAssignDialogOpen(true);
+  };
+
+  const handleCloseAutoAssignDialog = () => {
+    setIsAutoAssignDialogOpen(false);
+  };
+
+  const handleConfirmAutoAssign = () => {
     const unassignedIssues = issues.filter(isUnassignedIssue);
 
     console.log(
-      'Auto-assign unassigned issues',
+      'Confirm auto-assign unassigned issues',
       unassignedIssues.map((issue) => issue.key),
     );
+
+    setIsAutoAssignDialogOpen(false);
   };
 
   return (
@@ -66,7 +79,7 @@ function App() {
             <Button
               variant="contained"
               disabled={unassignedIssuesCount === 0}
-              onClick={handleAutoAssignUnassigned}
+              onClick={handleOpenAutoAssignDialog}
             >
               Auto-assign unassigned ({unassignedIssuesCount})
             </Button>
@@ -83,21 +96,27 @@ function App() {
             </Box>
           </Stack>
         )}
-        <>
-          <AssignIssueDialog
-            open={issueToAssign !== null}
-            issue={issueToAssign}
-            onClose={() => setIssueToAssign(null)}
-          />
 
-          <PriorityIssueDialog
-            open={issueToRaisePriority !== null}
-            issue={issueToRaisePriority}
-            onClose={() => setIssueToRaisePriority(null)}
-            reloadIssues={reloadIssues}
-            updateIssuePriority={updateIssuePriority}
-          />
-        </>
+        <AssignIssueDialog
+          open={issueToAssign !== null}
+          issue={issueToAssign}
+          onClose={() => setIssueToAssign(null)}
+        />
+
+        <PriorityIssueDialog
+          open={issueToRaisePriority !== null}
+          issue={issueToRaisePriority}
+          onClose={() => setIssueToRaisePriority(null)}
+          reloadIssues={reloadIssues}
+          updateIssuePriority={updateIssuePriority}
+        />
+
+        <ConfirmAutoAssignDialog
+          open={isAutoAssignDialogOpen}
+          unassignedIssuesCount={unassignedIssuesCount}
+          onClose={handleCloseAutoAssignDialog}
+          onConfirm={handleConfirmAutoAssign}
+        />
       </AppLayout>
     </AppProviders>
   );
