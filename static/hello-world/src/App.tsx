@@ -14,6 +14,8 @@ import type { JiraIssue } from './types/jira';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
 import { ConfirmAutoAssignDialog } from './components/issues/ConfirmAutoAssignDialog';
 import { isUnassignedIssue } from './features/utils/issueHealth';
+import { assignIssue, getProjectAssignableUsers } from './services/jiraApi';
+import { getRandomItem } from './features/utils/random';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -24,10 +26,13 @@ function App() {
   const selectedProject = useProjectStore((state) => state.selectedProject);
   const loadIssuesByProject = useProjectStore((state) => state.loadIssuesByProject);
   const updateIssuePriority = useProjectStore((state) => state.updateIssuePriority);
+  const updateIssueAssignee = useProjectStore((state) => state.updateIssueAssignee);
 
   const [issueToAssign, setIssueToAssign] = useState<JiraIssue | null>(null);
   const [issueToRaisePriority, setIssueToRaisePriority] = useState<JiraIssue | null>(null);
   const [isAutoAssignDialogOpen, setIsAutoAssignDialogOpen] = useState(false);
+  const [isAutoAssignSubmitting, setIsAutoAssignSubmitting] = useState(false);
+  const [autoAssignError, setAutoAssignError] = useState<string | null>(null);
 
   const unassignedIssuesCount = issues.filter(isUnassignedIssue).length;
 
@@ -42,6 +47,7 @@ function App() {
   };
 
   const handleOpenAutoAssignDialog = () => {
+    setAutoAssignError(null);
     setIsAutoAssignDialogOpen(true);
   };
 
@@ -49,15 +55,55 @@ function App() {
     setIsAutoAssignDialogOpen(false);
   };
 
-  const handleConfirmAutoAssign = () => {
+  const handleConfirmAutoAssign = async () => {
+    if (!selectedProject) return;
+
     const unassignedIssues = issues.filter(isUnassignedIssue);
+    if (unassignedIssues.length === 0) return;
 
-    console.log(
-      'Confirm auto-assign unassigned issues',
-      unassignedIssues.map((issue) => issue.key),
-    );
+    setIsAutoAssignSubmitting(true);
+    setAutoAssignError(null);
 
-    setIsAutoAssignDialogOpen(false);
+    try {
+      const users = await getProjectAssignableUsers(selectedProject.key);
+      const activeUsers = users.filter((user) => user.active !== false);
+
+      if (activeUsers.length === 0) {
+        setAutoAssignError('No active assignable users found for this project.');
+        return;
+      }
+
+      const failedIssueKeys: string[] = [];
+
+      for (const issue of unassignedIssues) {
+        const assignee = getRandomItem(activeUsers);
+        if (!assignee) {
+          failedIssueKeys.push(issue.key);
+          continue;
+        }
+
+        const previousAssignee = issue.fields.assignee ?? null;
+
+        updateIssueAssignee(issue.key, assignee);
+
+        try {
+          await assignIssue(issue.key, assignee?.accountId);
+        } catch {
+          updateIssueAssignee(issue.key, previousAssignee);
+          failedIssueKeys.push(issue.key);
+        }
+      }
+      if (failedIssueKeys.length > 0) {
+        setAutoAssignError(
+          `Failed to assign ${failedIssueKeys.length} issue(s): ${failedIssueKeys.join(', ')}`,
+        );
+        return;
+      }
+      setIsAutoAssignDialogOpen(false);
+    } finally {
+      setIsAutoAssignSubmitting(false);
+      await reloadIssues();
+    }
   };
 
   return (
@@ -114,6 +160,8 @@ function App() {
         <ConfirmAutoAssignDialog
           open={isAutoAssignDialogOpen}
           unassignedIssuesCount={unassignedIssuesCount}
+          isSubmitting={isAutoAssignSubmitting}
+          error={autoAssignError}
           onClose={handleCloseAutoAssignDialog}
           onConfirm={handleConfirmAutoAssign}
         />
