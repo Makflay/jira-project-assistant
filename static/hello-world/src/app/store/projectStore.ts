@@ -32,11 +32,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
     try {
       const projects = await getJiraProjects();
-      set({ projects, selectedProject: projects[0] ?? null });
+      set({ projects, selectedProject: projects[0] ?? null, isProjectsLoading: false });
 
       if (projects[0]) {
-        const issues = await getIssuesByProject(projects[0].key);
-        set({ issues });
+        await get().loadIssuesByProject(projects[0]);
       }
     } catch {
       set({ projectsError: 'Failed to load Jira projects' });

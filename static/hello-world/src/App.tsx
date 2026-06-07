@@ -26,7 +26,6 @@ function App() {
 
   const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null);
   const isFixDialogOpen = selectedIssue !== null;
-  //const isAssignDialogOpen = selectedIssue ? isUnassignedIssue(selectedIssue) : false;
   const selectedIssueProblems = selectedIssue ? getIssueProblems(selectedIssue) : [];
   const shouldOpenAssignDialog = isFixDialogOpen && selectedIssueProblems.includes('unassigned');
   const shouldOpenPriorityDialog =
@@ -72,7 +71,7 @@ function App() {
         {isFixDialogOpen && (
           <>
             <AssignIssueDialog
-              open={shouldOpenPriorityDialog}
+              open={shouldOpenAssignDialog}
               issue={selectedIssue}
               onClose={handleCloseFixDialog}
             />
