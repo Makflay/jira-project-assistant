@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Stack, Button } from '@mui/material';
+import { Box, Stack, Button, Tabs, Tab } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
 import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
@@ -10,12 +10,13 @@ import { ErrorState } from './components/common/ErrorState';
 import { LoadingState } from './components/common/LoadingState';
 import { IssuesTable } from './components/issues/IssuesTable';
 import { PriorityIssueDialog } from './components/issues/PriorityIssueDialog';
-import type { JiraIssue } from './types/jira';
+import { TeamPage } from './components/team/TeamPage';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
 import { ConfirmAutoAssignDialog } from './components/issues/ConfirmAutoAssignDialog';
 import { isUnassignedIssue } from './features/utils/issueHealth';
 import { assignIssue, getProjectAssignableUsers } from './services/jiraApi';
 import { getRandomItem } from './features/utils/random';
+import type { JiraIssue } from './types/jira';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -33,6 +34,7 @@ function App() {
   const [isAutoAssignDialogOpen, setIsAutoAssignDialogOpen] = useState(false);
   const [isAutoAssignSubmitting, setIsAutoAssignSubmitting] = useState(false);
   const [autoAssignError, setAutoAssignError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'issues' | 'team'>('issues');
 
   const unassignedIssuesCount = issues.filter(isUnassignedIssue).length;
 
@@ -106,6 +108,10 @@ function App() {
     }
   };
 
+  const handleTabChange = (_event: React.SyntheticEvent, value: 'issues' | 'team') => {
+    setActiveTab(value);
+  };
+
   return (
     <AppProviders>
       <AppLayout>
@@ -121,6 +127,17 @@ function App() {
         ) : (
           <Stack spacing={3}>
             <ProjectSelect />
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+              <Tabs value={activeTab} onChange={handleTabChange}>
+                <Tab label="Issues" value="issues" />
+                <Tab label="Team" value="team" />
+              </Tabs>
+            </Box>
+            {activeTab === 'issues' && (
+              <>{/* Dashboard: stats, auto-assign button, issues table, dialogs */}</>
+            )}
+
+            {activeTab === 'team' && <TeamPage />}
             <ProjectStats />
             <Button
               variant="contained"
