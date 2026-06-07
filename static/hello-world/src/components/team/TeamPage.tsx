@@ -6,6 +6,7 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Chip,
 } from '@mui/material';
 import { useEffect, useState, useMemo } from 'react';
 import { EmptyState } from '../common/EmptyState';
@@ -14,7 +15,11 @@ import { LoadingState } from '../common/LoadingState';
 import { useProjectStore } from '../../app/store/projectStore';
 import { getProjectAssignableUsers } from '../../services/jiraApi';
 import type { JiraUser } from '../../types/jira';
-import { getAssignedIssuesCountByUser } from '../../features/utils/teamStats';
+import {
+  getAssignedIssuesCountByUser,
+  getMemberActivityStatus,
+  getMemberActivityColor,
+} from '../../features/utils/teamStats';
 
 export function TeamPage() {
   const selectedProject = useProjectStore((state) => state.selectedProject);
@@ -75,6 +80,8 @@ export function TeamPage() {
       <List>
         {teamMembers.map((user) => {
           const assignedIssuesCount = assignedIssuesCountByUser[user.accountId] ?? 0;
+          const activityStatus = getMemberActivityStatus(assignedIssuesCount);
+          const activityColor = getMemberActivityColor(activityStatus);
           return (
             <ListItem key={user.accountId} divider>
               <ListItemAvatar>
@@ -97,6 +104,7 @@ export function TeamPage() {
                   .filter(Boolean)
                   .join(' • ')}
               />
+              <Chip size="small" color={activityColor} label={activityStatus} />
             </ListItem>
           );
         })}
