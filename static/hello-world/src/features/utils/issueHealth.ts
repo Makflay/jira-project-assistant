@@ -29,6 +29,10 @@ export const isLowPriority = (priorityName?: string | null): boolean => {
 };
 
 export const isLowPriorityNearDeadlineIssue = (issue: JiraIssue): boolean => {
+  if (isDoneIssue(issue)) {
+    return false;
+  }
+
   return isLowPriority(issue.fields.priority?.name) && isNearDeadline(issue.fields.duedate);
 };
 
@@ -48,4 +52,8 @@ export function getIssueProblems(issue: JiraIssue): IssueProblem[] {
 
 export function hasIssueProblems(issue: JiraIssue): boolean {
   return getIssueProblems(issue).length > 0;
+}
+
+export function isDoneIssue(issue: JiraIssue): boolean {
+  return issue.fields.status.statusCategory?.key === 'done';
 }
