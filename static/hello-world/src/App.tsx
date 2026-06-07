@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Button } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
 import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
@@ -12,6 +12,7 @@ import { IssuesTable } from './components/issues/IssuesTable';
 import { PriorityIssueDialog } from './components/issues/PriorityIssueDialog';
 import type { JiraIssue } from './types/jira';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
+import { isUnassignedIssue } from './features/utils/issueHealth';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -25,6 +26,7 @@ function App() {
 
   const [issueToAssign, setIssueToAssign] = useState<JiraIssue | null>(null);
   const [issueToRaisePriority, setIssueToRaisePriority] = useState<JiraIssue | null>(null);
+  const unassignedIssuesCount = issues.filter(isUnassignedIssue).length;
 
   useEffect(() => {
     loadProjects();
@@ -34,6 +36,15 @@ function App() {
     if (!selectedProject) return;
 
     await loadIssuesByProject(selectedProject);
+  };
+
+  const handleAutoAssignUnassigned = () => {
+    const unassignedIssues = issues.filter(isUnassignedIssue);
+
+    console.log(
+      'Auto-assign unassigned issues',
+      unassignedIssues.map((issue) => issue.key),
+    );
   };
 
   return (
@@ -52,6 +63,13 @@ function App() {
           <Stack spacing={3}>
             <ProjectSelect />
             <ProjectStats />
+            <Button
+              variant="contained"
+              disabled={unassignedIssuesCount === 0}
+              onClick={handleAutoAssignUnassigned}
+            >
+              Auto-assign unassigned ({unassignedIssuesCount})
+            </Button>
             <Box>
               {issues.length > 0 && (
                 <IssuesTable
