@@ -57,7 +57,9 @@ function App() {
                 <IssuesTable
                   issues={issues}
                   onAssignIssue={setIssueToAssign}
-                  onRaisePriority={setIssueToRaisePriority}
+                  onRaisePriority={(issue) => {
+                    setIssueToRaisePriority(issue);
+                  }}
                 />
               )}
             </Box>
