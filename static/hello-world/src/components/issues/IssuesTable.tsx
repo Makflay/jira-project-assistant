@@ -8,7 +8,11 @@ import {
   Paper,
   Chip,
   Button,
+  Box,
+  Stack,
+  Typography,
 } from '@mui/material';
+import type { ChipProps } from '@mui/material';
 import type { JiraIssue } from '../../types/jira';
 import { formatDate } from '../../features/utils/formatters';
 import {
@@ -22,19 +26,34 @@ type IssuesTableProps = {
   onFixIssue: (issue: JiraIssue) => void;
 };
 
+function getStatusColor(issue: JiraIssue): ChipProps['color'] {
+  const statusCategory = issue.fields.status.statusCategory?.key?.toLowerCase();
+
+  if (statusCategory === 'done') return 'success';
+  if (statusCategory === 'indeterminate') return 'warning';
+
+  return 'default';
+}
+
 export function IssuesTable({ issues, onFixIssue }: IssuesTableProps) {
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
+    <TableContainer
+      component={Paper}
+      variant="outlined"
+      sx={{
+        overflowX: 'auto',
+        maxWidth: '100%',
+      }}
+    >
+      <Table size="small" sx={{ minWidth: 900 }}>
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ bgcolor: 'grey.50' }}>
             <TableCell>Key</TableCell>
             <TableCell>Summary</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Assignee</TableCell>
             <TableCell>Priority</TableCell>
-            <TableCell>Due date</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
 
@@ -43,45 +62,115 @@ export function IssuesTable({ issues, onFixIssue }: IssuesTableProps) {
             const isUnassigned = isUnassignedIssue(issue);
             const isLowPriorityNearDeadline = isLowPriorityNearDeadlineIssue(issue);
             const problems = getIssueProblems(issue);
-            const isFixable = problems.length > 0;
             return (
               <TableRow
                 key={issue.id}
                 sx={{
                   bgcolor: isUnassigned
-                    ? 'rgba(211, 47, 47, 0.08)'
+                    ? 'rgba(211, 47, 47, 0.07)'
                     : isLowPriorityNearDeadline
-                      ? 'rgba(237, 108, 2, 0.08)'
+                      ? 'rgba(237, 108, 2, 0.07)'
                       : 'inherit',
+                  '&:hover': {
+                    bgcolor: isUnassigned
+                      ? 'rgba(211, 47, 47, 0.12)'
+                      : isLowPriorityNearDeadline
+                        ? 'rgba(237, 108, 2, 0.12)'
+                        : 'action.hover',
+                  },
                 }}
               >
-                <TableCell>{issue.key}</TableCell>
-                <TableCell>{issue.fields.summary}</TableCell>
-                <TableCell>
-                  <Chip size="small" label={issue.fields.status.name} />
+                <TableCell sx={{ width: 120, whiteSpace: 'nowrap' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {issue.key}
+                  </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ maxWidth: 420 }}>
+                  <Stack spacing={0.75}>
+                    <Typography
+                      variant="body2"
+                      title={issue.fields.summary}
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {issue.fields.summary}
+                    </Typography>
+                    {problems.length > 0 && (
+                      <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                        {isUnassigned && (
+                          <Chip size="small" color="error" variant="outlined" label="No assignee" />
+                        )}
+                        {isLowPriorityNearDeadline && (
+                          <Chip
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                            label="Priority due soon"
+                          />
+                        )}
+                      </Stack>
+                    )}
+                  </Stack>
+                </TableCell>
+                <TableCell sx={{ width: 150 }}>
+                  <Chip
+                    size="small"
+                    color={getStatusColor(issue)}
+                    label={issue.fields.status.name}
+                  />
+                </TableCell>
+                <TableCell sx={{ width: 190 }}>
                   {isUnassigned ? (
                     <Chip size="small" color="error" label="Unassigned" />
                   ) : (
-                    issue.fields.assignee?.displayName
+                    <Typography
+                      variant="body2"
+                      title={issue.fields.assignee?.displayName}
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {issue.fields.assignee?.displayName}
+                    </Typography>
                   )}
                 </TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    variant="outlined"
-                    label={issue.fields.priority?.name ?? 'No priority'}
-                  />
+                <TableCell sx={{ width: 190 }}>
+                  <Stack spacing={0.5}>
+                    <Chip
+                      size="small"
+                      color={isLowPriorityNearDeadline ? 'warning' : 'default'}
+                      variant="outlined"
+                      label={issue.fields.priority?.name ?? 'No priority'}
+                      sx={{ alignSelf: 'flex-start' }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      Due: {formatDate(issue.fields.duedate)}
+                    </Typography>
+                  </Stack>
                 </TableCell>
-                <TableCell>{formatDate(issue.fields.duedate)}</TableCell>
-                <TableCell>
-                  {isFixable ? (
-                    <Button size="small" variant="outlined" onClick={() => onFixIssue(issue)}>
-                      Fix
+                <TableCell align="right" sx={{ width: 190 }}>
+                  {isUnassigned ? (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => onFixIssue(issue)}
+                      aria-label={`Assign ${issue.key}`}
+                    >
+                      Assign
+                    </Button>
+                  ) : isLowPriorityNearDeadline ? (
+                    <Button size="small" variant="text" disabled>
+                      Priority issue
                     </Button>
                   ) : (
-                    '-'
+                    <Box component="span" sx={{ color: 'text.disabled' }}>
+                      -
+                    </Box>
                   )}
                 </TableCell>
               </TableRow>

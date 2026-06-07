@@ -5,15 +5,15 @@ export function AppLayout({ children }: PropsWithChildren) {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar position="static" color="primary" elevation={0}>
-        <Toolbar>
+        <Toolbar sx={{ maxWidth: 1200, width: '100%', mx: 'auto', px: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" component="h1">
             Jira Project Assistant
           </Typography>
         </Toolbar>
-        <Container maxWidth="lg" sx={{ py: 3 }}>
-          {children}
-        </Container>
       </AppBar>
+      <Container component="main" maxWidth="lg" sx={{ py: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3 } }}>
+        {children}
+      </Container>
     </Box>
   );
 }

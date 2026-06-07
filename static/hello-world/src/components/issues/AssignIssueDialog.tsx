@@ -1,11 +1,14 @@
 import {
+  Alert,
+  Box,
   Button,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
+  Stack,
   Typography,
-  Alert,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { useState, useEffect } from 'react';
@@ -35,13 +38,38 @@ export function AssignIssueDialog({ open, issue, onClose }: AssignIssueDialogPro
   useEffect(() => {
     if (!open || !projectKey) return;
 
-    setIsUsersLoading(true);
-    setUsersError(null);
+    let isActive = true;
 
-    getProjectAssignableUsers(projectKey)
-      .then(setUsers)
-      .catch(() => setUsersError('Failed to load assignable users'))
-      .finally(() => setIsUsersLoading(false));
+    Promise.resolve()
+      .then(() => {
+        if (!isActive) return;
+
+        setIsUsersLoading(true);
+        setUsersError(null);
+        setSubmitError(null);
+        setSelectedAccountId('');
+        setUsers([]);
+      })
+      .then(() => getProjectAssignableUsers(projectKey))
+      .then((assignableUsers) => {
+        if (!isActive) return;
+
+        setUsers(assignableUsers);
+      })
+      .catch(() => {
+        if (!isActive) return;
+
+        setUsersError('Failed to load assignable users');
+      })
+      .finally(() => {
+        if (!isActive) return;
+
+        setIsUsersLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, [open, projectKey]);
 
   const handleClose = () => {
@@ -84,48 +112,58 @@ export function AssignIssueDialog({ open, issue, onClose }: AssignIssueDialogPro
       onClose={handleClose}
       actions={
         <>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
           <Button
             variant="contained"
             disabled={!selectedAccountId || isSubmitting || isUsersLoading}
             onClick={handleConfirm}
+            startIcon={isSubmitting ? <CircularProgress color="inherit" size={16} /> : undefined}
           >
-            Confirm
+            {isSubmitting ? 'Assigning' : 'Confirm'}
           </Button>
         </>
       }
     >
-      <Typography sx={{ mb: 2 }}>Select an assignee for this issue.</Typography>
+      <Stack spacing={2}>
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            Choose an assignable project member. The issue row updates immediately and rolls back if
+            Jira rejects the change.
+          </Typography>
+        </Box>
 
-      {usersError ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {usersError}
-        </Alert>
-      ) : (
-        <>
-          {isUsersLoading && <Typography sx={{ mb: 2 }}>Loading users...</Typography>}
-          {submitError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {submitError}
-            </Alert>
-          )}
-          <FormControl fullWidth size="small" disabled={isUsersLoading || users.length === 0}>
-            <InputLabel id="assignee-select-label">Assignee</InputLabel>
-            <Select
-              labelId="assignee-select-label"
-              value={selectedAccountId}
-              label="Assignee"
-              onChange={handleChange}
-            >
-              {users.map((user) => (
-                <MenuItem key={user.accountId} value={user.accountId}>
-                  {user.displayName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </>
-      )}
+        {usersError && <Alert severity="error">{usersError}</Alert>}
+        {submitError && <Alert severity="error">{submitError}</Alert>}
+        {isUsersLoading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CircularProgress size={18} />
+            <Typography variant="body2" color="text.secondary">
+              Loading assignable users...
+            </Typography>
+          </Box>
+        )}
+        {!isUsersLoading && !usersError && users.length === 0 && (
+          <Alert severity="info">No assignable users were found for this project.</Alert>
+        )}
+
+        <FormControl fullWidth size="small" disabled={isUsersLoading || users.length === 0}>
+          <InputLabel id="assignee-select-label">Assignee</InputLabel>
+          <Select
+            labelId="assignee-select-label"
+            value={selectedAccountId}
+            label="Assignee"
+            onChange={handleChange}
+          >
+            {users.map((user) => (
+              <MenuItem key={user.accountId} value={user.accountId}>
+                {user.displayName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
     </BaseDialog>
   );
 }

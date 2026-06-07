@@ -11,10 +11,22 @@ type BaseDialogProps = {
 
 export function BaseDialog({ open, title, onClose, actions, children }: BaseDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent dividers>{children}</DialogContent>
-      {actions && <DialogActions>{actions}</DialogActions>}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      sx={{
+        '& .MuiDialog-paper': {
+          maxHeight: 'calc(100% - 32px)',
+        },
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>{title}</DialogTitle>
+      <DialogContent dividers sx={{ py: 2.5 }}>
+        {children}
+      </DialogContent>
+      {actions && <DialogActions sx={{ px: 3, py: 2 }}>{actions}</DialogActions>}
     </Dialog>
   );
 }

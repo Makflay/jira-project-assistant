@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
 import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
@@ -10,7 +10,6 @@ import { ErrorState } from './components/common/ErrorState';
 import { LoadingState } from './components/common/LoadingState';
 import { IssuesTable } from './components/issues/IssuesTable';
 import type { JiraIssue } from './types/jira';
-import { BaseDialog } from './components/common/BaseDialog';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
 import { isUnassignedIssue } from './features/utils/issueHealth';
 
@@ -33,49 +32,34 @@ function App() {
     setSelectedIssue(null);
   };
 
-  if (isProjectsLoading) {
-    return <LoadingState message="Loading Jira projects..." />;
-  }
-
-  if (projectsError) {
-    return <ErrorState message={projectsError} />;
-  }
-
-  if (projects.length === 0) {
-    return (
-      <EmptyState
-        title="No Jira projects found"
-        description="You do not have access to any Jira projects yet."
-      />
-    );
-  }
-
   return (
     <AppProviders>
       <AppLayout>
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="h6">Projects</Typography>
-          {projects.map((project) => (
-            <Typography key={project.id}>
-              {project.key} - {project.name}
-            </Typography>
-          ))}
-        </Box>
-        <ProjectSelect />
-        <ProjectStats />
-        {issues.length > 0 && <IssuesTable issues={issues} onFixIssue={setSelectedIssue} />}
-        <BaseDialog
-          open={isFixDialogOpen}
-          title={selectedIssue ? `Fix ${selectedIssue.key}` : `Fix issue`}
-          onClose={handleCloseFixDialog}
-          actions={<Button onClick={handleCloseFixDialog}>Close</Button>}
-        >
+        {isProjectsLoading ? (
+          <LoadingState message="Loading Jira projects..." />
+        ) : projectsError ? (
+          <ErrorState message={projectsError} actionLabel="Retry" onAction={loadProjects} />
+        ) : projects.length === 0 ? (
+          <EmptyState
+            title="No Jira projects found"
+            description="You do not have access to any Jira projects yet."
+          />
+        ) : (
+          <Stack spacing={3}>
+            <ProjectSelect />
+            <ProjectStats />
+            <Box>
+              {issues.length > 0 && <IssuesTable issues={issues} onFixIssue={setSelectedIssue} />}
+            </Box>
+          </Stack>
+        )}
+        {isFixDialogOpen && (
           <AssignIssueDialog
             open={isAssignDialogOpen}
             issue={selectedIssue}
             onClose={handleCloseFixDialog}
           />
-        </BaseDialog>
+        )}
       </AppLayout>
     </AppProviders>
   );
