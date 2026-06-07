@@ -70,13 +70,12 @@ function App() {
           onClose={handleCloseFixDialog}
           actions={<Button onClick={handleCloseFixDialog}>Close</Button>}
         >
-          <Typography>Fix actions will be added later.</Typography>
+          <AssignIssueDialog
+            open={isAssignDialogOpen}
+            issue={selectedIssue}
+            onClose={handleCloseFixDialog}
+          />
         </BaseDialog>
-        <AssignIssueDialog
-          open={isAssignDialogOpen}
-          issue={selectedIssue}
-          onClose={handleCloseFixDialog}
-        />
       </AppLayout>
     </AppProviders>
   );

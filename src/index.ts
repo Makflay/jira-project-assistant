@@ -44,4 +44,29 @@ resolver.define("getIssuesByProject", async ({ payload }) => {
   return data.issues;
 });
 
+resolver.define("getProjectAssignableUsers", async ({ payload }) => {
+  const { projectKey } = payload as { projectKey: string };
+
+  if (!/^[A-Z][A-Z0-9_]+$/.test(projectKey)) {
+    throw new Error("Invalid project key");
+  }
+
+  const res = await api
+    .asUser()
+    .requestJira(
+      route`/rest/api/3/user/assignable/multiProjectSearch?projectKeys=${projectKey}&maxResults=50`,
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      },
+    );
+
+  if (!res.ok) {
+    throw new Error(`Failed to load assignable users: ${res.status}`);
+  }
+
+  return res.json();
+});
+
 export const handler = resolver.getDefinitions();

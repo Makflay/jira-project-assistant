@@ -7,3 +7,7 @@ export function getJiraProjects() {
 export function getIssuesByProject(projectKey: string) {
   return invoke('getIssuesByProject', { projectKey });
 }
+
+export function getProjectAssignableUsers(projectKey: string) {
+  return invoke('getProjectAssignableUsers', { projectKey });
+}
