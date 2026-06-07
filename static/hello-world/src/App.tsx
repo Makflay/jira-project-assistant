@@ -12,7 +12,6 @@ import { IssuesTable } from './components/issues/IssuesTable';
 import { PriorityIssueDialog } from './components/issues/PriorityIssueDialog';
 import type { JiraIssue } from './types/jira';
 import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
-import { getIssueProblems } from './features/utils/issueHealth';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -24,22 +23,12 @@ function App() {
   const loadIssuesByProject = useProjectStore((state) => state.loadIssuesByProject);
   const updateIssuePriority = useProjectStore((state) => state.updateIssuePriority);
 
-  const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null);
-  const isFixDialogOpen = selectedIssue !== null;
-  const selectedIssueProblems = selectedIssue ? getIssueProblems(selectedIssue) : [];
-  const shouldOpenAssignDialog = isFixDialogOpen && selectedIssueProblems.includes('unassigned');
-  const shouldOpenPriorityDialog =
-    isFixDialogOpen &&
-    !shouldOpenAssignDialog &&
-    selectedIssueProblems.includes('lowPriorityNearDeadline');
+  const [issueToAssign, setIssueToAssign] = useState<JiraIssue | null>(null);
+  const [issueToRaisePriority, setIssueToRaisePriority] = useState<JiraIssue | null>(null);
 
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
-
-  const handleCloseFixDialog = () => {
-    setSelectedIssue(null);
-  };
 
   const reloadIssues = async () => {
     if (!selectedProject) return;
@@ -64,27 +53,31 @@ function App() {
             <ProjectSelect />
             <ProjectStats />
             <Box>
-              {issues.length > 0 && <IssuesTable issues={issues} onFixIssue={setSelectedIssue} />}
+              {issues.length > 0 && (
+                <IssuesTable
+                  issues={issues}
+                  onAssignIssue={setIssueToAssign}
+                  onRaisePriority={setIssueToRaisePriority}
+                />
+              )}
             </Box>
           </Stack>
         )}
-        {isFixDialogOpen && (
-          <>
-            <AssignIssueDialog
-              open={shouldOpenAssignDialog}
-              issue={selectedIssue}
-              onClose={handleCloseFixDialog}
-            />
+        <>
+          <AssignIssueDialog
+            open={issueToAssign !== null}
+            issue={issueToAssign}
+            onClose={() => setIssueToAssign(null)}
+          />
 
-            <PriorityIssueDialog
-              open={shouldOpenPriorityDialog}
-              issue={selectedIssue}
-              onClose={handleCloseFixDialog}
-              reloadIssues={reloadIssues}
-              updateIssuePriority={updateIssuePriority}
-            />
-          </>
-        )}
+          <PriorityIssueDialog
+            open={issueToRaisePriority !== null}
+            issue={issueToRaisePriority}
+            onClose={() => setIssueToRaisePriority(null)}
+            reloadIssues={reloadIssues}
+            updateIssuePriority={updateIssuePriority}
+          />
+        </>
       </AppLayout>
     </AppProviders>
   );

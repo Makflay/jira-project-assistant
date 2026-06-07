@@ -23,7 +23,9 @@ import {
 
 type IssuesTableProps = {
   issues: JiraIssue[];
-  onFixIssue: (issue: JiraIssue) => void;
+
+  onAssignIssue: (issue: JiraIssue) => void;
+  onRaisePriority: (issue: JiraIssue) => void;
 };
 
 function getStatusColor(issue: JiraIssue): ChipProps['color'] {
@@ -35,7 +37,7 @@ function getStatusColor(issue: JiraIssue): ChipProps['color'] {
   return 'default';
 }
 
-export function IssuesTable({ issues, onFixIssue }: IssuesTableProps) {
+export function IssuesTable({ issues, onAssignIssue, onRaisePriority }: IssuesTableProps) {
   return (
     <TableContainer
       component={Paper}
@@ -154,24 +156,35 @@ export function IssuesTable({ issues, onFixIssue }: IssuesTableProps) {
                   </Stack>
                 </TableCell>
                 <TableCell align="right" sx={{ width: 190 }}>
-                  {isUnassigned ? (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => onFixIssue(issue)}
-                      aria-label={`Assign ${issue.key}`}
-                    >
-                      Assign
-                    </Button>
-                  ) : isLowPriorityNearDeadline ? (
-                    <Button size="small" variant="text" disabled>
-                      Priority issue
-                    </Button>
-                  ) : (
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      -
-                    </Box>
-                  )}
+                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                    {isUnassigned && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => onAssignIssue(issue)}
+                        aria-label={`Assign ${issue.key}`}
+                      >
+                        Assign
+                      </Button>
+                    )}
+
+                    {isLowPriorityNearDeadline && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => onRaisePriority(issue)}
+                        aria-label={`Raise priority for ${issue.key}`}
+                      >
+                        Raise priority
+                      </Button>
+                    )}
+
+                    {!isUnassigned && !isLowPriorityNearDeadline && (
+                      <Box component="span" sx={{ color: 'text.disabled' }}>
+                        -
+                      </Box>
+                    )}
+                  </Stack>
                 </TableCell>
               </TableRow>
             );
