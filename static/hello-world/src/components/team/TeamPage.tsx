@@ -7,8 +7,9 @@ import {
   ListItemAvatar,
   ListItemText,
   Chip,
+  Button,
 } from '@mui/material';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { EmptyState } from '../common/EmptyState';
 import { ErrorState } from '../common/ErrorState';
 import { LoadingState } from '../common/LoadingState';
@@ -29,7 +30,7 @@ export function TeamPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadTeamMembers = useCallback(async () => {
     if (!selectedProject) {
       setTeamMembers([]);
       return;
@@ -43,6 +44,10 @@ export function TeamPage() {
       .catch(() => setError('Failed to load project team members'))
       .finally(() => setIsLoading(false));
   }, [selectedProject]);
+
+  useEffect(() => {
+    void loadTeamMembers();
+  }, [loadTeamMembers]);
 
   const assignedIssuesCountByUser = useMemo(() => getAssignedIssuesCountByUser(issues), [issues]);
 
@@ -60,14 +65,21 @@ export function TeamPage() {
   }
 
   if (error) {
-    return <ErrorState message={error} />;
+    return (
+      <>
+        <ErrorState message={error} />
+        <Button sx={{ mt: 2 }} onClick={() => void loadTeamMembers()}>
+          Retry
+        </Button>
+      </>
+    );
   }
 
   if (teamMembers.length === 0) {
     return (
       <EmptyState
-        title="No assignable users found"
-        description="This project has no users available for issue assignment."
+        title="No team members found"
+        description="This project has no members available for issue assignment."
       />
     );
   }
