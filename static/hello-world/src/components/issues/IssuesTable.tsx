@@ -5,7 +5,6 @@ import {
   TableHead,
   TableContainer,
   TableRow,
-  Typography,
   Paper,
   Chip,
   Button,
@@ -20,12 +19,10 @@ import {
 
 type IssuesTableProps = {
   issues: JiraIssue[];
+  onFixIssue: (issue: JiraIssue) => void;
 };
 
-export function IssuesTable({ issues }: IssuesTableProps) {
-  const handleFixClick = (issue: JiraIssue) => {
-    console.log('Fix issue', issue);
-  };
+export function IssuesTable({ issues, onFixIssue }: IssuesTableProps) {
   return (
     <TableContainer component={Paper}>
       <Table size="small">
@@ -80,7 +77,7 @@ export function IssuesTable({ issues }: IssuesTableProps) {
                 <TableCell>{formatDate(issue.fields.duedate)}</TableCell>
                 <TableCell>
                   {isFixable ? (
-                    <Button size="small" variant="outlined" onClick={() => handleFixClick(issue)}>
+                    <Button size="small" variant="outlined" onClick={() => onFixIssue(issue)}>
                       Fix
                     </Button>
                   ) : (

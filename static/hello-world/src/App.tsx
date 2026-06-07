@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Box, Typography, Alert } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 import { AppProviders } from './app/AppProviders';
 import { useProjectStore } from './app/store/projectStore';
 import { AppLayout } from './components/layout/AppLayout';
@@ -9,6 +9,8 @@ import { EmptyState } from './components/common/EmptyState';
 import { ErrorState } from './components/common/ErrorState';
 import { LoadingState } from './components/common/LoadingState';
 import { IssuesTable } from './components/issues/IssuesTable';
+import type { JiraIssue } from './types/jira';
+import { BaseDialog } from './components/common/BaseDialog';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -17,9 +19,16 @@ function App() {
   const projectsError = useProjectStore((state) => state.projectsError);
   const loadProjects = useProjectStore((state) => state.loadProjects);
 
+  const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null);
+  const isFixDialogOpen = selectedIssue !== null;
+
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  const handleCLoseFixDialog = () => {
+    setSelectedIssue(null);
+  };
 
   if (isProjectsLoading) {
     return <LoadingState message="Loading Jira projects..." />;
@@ -51,7 +60,15 @@ function App() {
         </Box>
         <ProjectSelect />
         <ProjectStats />
-        {issues.length > 0 && <IssuesTable issues={issues} />}
+        {issues.length > 0 && <IssuesTable issues={issues} onFixIssue={setSelectedIssue} />}
+        <BaseDialog
+          open={isFixDialogOpen}
+          title={selectedIssue ? `Fix ${selectedIssue.key}` : `Fix issue`}
+          onClose={handleCLoseFixDialog}
+          actions={<Button onClick={handleCLoseFixDialog}>Close</Button>}
+        >
+          <Typography>Fix actions will be added later.</Typography>
+        </BaseDialog>
       </AppLayout>
     </AppProviders>
   );
