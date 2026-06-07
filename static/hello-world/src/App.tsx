@@ -11,6 +11,8 @@ import { LoadingState } from './components/common/LoadingState';
 import { IssuesTable } from './components/issues/IssuesTable';
 import type { JiraIssue } from './types/jira';
 import { BaseDialog } from './components/common/BaseDialog';
+import { AssignIssueDialog } from './components/issues/AssignIssueDialog';
+import { isUnassignedIssue } from './features/utils/issueHealth';
 
 function App() {
   const projects = useProjectStore((state) => state.projects);
@@ -21,12 +23,13 @@ function App() {
 
   const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null);
   const isFixDialogOpen = selectedIssue !== null;
+  const isAssignDialogOpen = selectedIssue ? isUnassignedIssue(selectedIssue) : false;
 
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
 
-  const handleCLoseFixDialog = () => {
+  const handleCloseFixDialog = () => {
     setSelectedIssue(null);
   };
 
@@ -64,11 +67,16 @@ function App() {
         <BaseDialog
           open={isFixDialogOpen}
           title={selectedIssue ? `Fix ${selectedIssue.key}` : `Fix issue`}
-          onClose={handleCLoseFixDialog}
-          actions={<Button onClick={handleCLoseFixDialog}>Close</Button>}
+          onClose={handleCloseFixDialog}
+          actions={<Button onClick={handleCloseFixDialog}>Close</Button>}
         >
           <Typography>Fix actions will be added later.</Typography>
         </BaseDialog>
+        <AssignIssueDialog
+          open={isAssignDialogOpen}
+          issue={selectedIssue}
+          onClose={handleCloseFixDialog}
+        />
       </AppLayout>
     </AppProviders>
   );
