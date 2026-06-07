@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { JiraIssue, JiraProject } from '../../types/jira';
+import type { JiraIssue, JiraProject, JiraUser } from '../../types/jira';
 import { getIssuesByProject, getJiraProjects } from '../../services/jiraApi';
 
 type ProjectStore = {
@@ -14,6 +14,7 @@ type ProjectStore = {
   loadProjects: () => Promise<void>;
   setSelectedProject: (project: JiraProject) => void;
   loadIssuesByProject: (project: JiraProject) => Promise<void>;
+  updateIssueAssignee: (issueKey: string, assigne: JiraUser | null) => void;
 };
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
@@ -64,5 +65,20 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     } finally {
       set({ isIssuesLoading: false });
     }
+  },
+  updateIssueAssignee: (issueKey, assignee) => {
+    set((state) => ({
+      issues: state.issues.map((issue) =>
+        issue.key === issueKey
+          ? {
+              ...issue,
+              fields: {
+                ...issue.fields,
+                assignee,
+              },
+            }
+          : issue,
+      ),
+    }));
   },
 }));

@@ -11,3 +11,7 @@ export function getIssuesByProject(projectKey: string) {
 export function getProjectAssignableUsers(projectKey: string) {
   return invoke('getProjectAssignableUsers', { projectKey });
 }
+
+export function assignIssue(issueKey: string, accountId: string) {
+  return invoke('assignIssue', { issueKey, accountId });
+}

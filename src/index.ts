@@ -69,4 +69,38 @@ resolver.define("getProjectAssignableUsers", async ({ payload }) => {
   return res.json();
 });
 
+resolver.define("assignIssue", async ({ payload }) => {
+  const { issueKey, accountId } = payload as {
+    issueKey: string;
+    accountId: string;
+  };
+
+  if (!/^[A-Z][A-Z0-9_]+-\d+$/.test(issueKey)) {
+    throw new Error("Invalid issue key");
+  }
+
+  if (!accountId) {
+    throw new Error("Invalid account id");
+  }
+
+  const res = await api
+    .asUser()
+    .requestJira(route`/rest/api/3/issue/${issueKey}/assignee`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        accountId,
+      }),
+    });
+
+  if (!res.ok) {
+    throw new Error(`Failed to assign issue: ${res.status}`);
+  }
+
+  return { success: true };
+});
+
 export const handler = resolver.getDefinitions();

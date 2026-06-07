@@ -11,7 +11,8 @@ import type { SelectChangeEvent } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { BaseDialog } from '../common/BaseDialog';
 import type { JiraIssue, JiraUser } from '../../types/jira';
-import { getProjectAssignableUsers } from '../../services/jiraApi';
+import { getProjectAssignableUsers, assignIssue } from '../../services/jiraApi';
+import { useProjectStore } from '../../app/store/projectStore';
 
 type AssignIssueDialogProps = {
   open: boolean;
@@ -24,6 +25,10 @@ export function AssignIssueDialog({ open, issue, onClose }: AssignIssueDialogPro
   const [users, setUsers] = useState<JiraUser[]>([]);
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const updateIssueAssignee = useProjectStore((state) => state.updateIssueAssignee);
 
   const projectKey = issue?.key?.split('-')[0] ?? null;
 
@@ -41,11 +46,35 @@ export function AssignIssueDialog({ open, issue, onClose }: AssignIssueDialogPro
 
   const handleClose = () => {
     setSelectedAccountId('');
+    setSubmitError(null);
     onClose();
   };
 
   const handleChange = (event: SelectChangeEvent) => {
     setSelectedAccountId(event.target.value);
+  };
+
+  const handleConfirm = async () => {
+    const newAssignee = users.find((user) => user.accountId === selectedAccountId);
+
+    if (!issue || !newAssignee) return;
+
+    const previousAssignee = issue.fields.assignee ?? null;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    updateIssueAssignee(issue.key, newAssignee);
+
+    try {
+      await assignIssue(issue.key, selectedAccountId);
+      handleClose();
+    } catch {
+      updateIssueAssignee(issue.key, previousAssignee);
+      setSubmitError('Failed to assign issue');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -56,7 +85,11 @@ export function AssignIssueDialog({ open, issue, onClose }: AssignIssueDialogPro
       actions={
         <>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button variant="contained" disabled={!selectedAccountId}>
+          <Button
+            variant="contained"
+            disabled={!selectedAccountId || isSubmitting || isUsersLoading}
+            onClick={handleConfirm}
+          >
             Confirm
           </Button>
         </>
@@ -71,7 +104,11 @@ export function AssignIssueDialog({ open, issue, onClose }: AssignIssueDialogPro
       ) : (
         <>
           {isUsersLoading && <Typography sx={{ mb: 2 }}>Loading users...</Typography>}
-
+          {submitError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {submitError}
+            </Alert>
+          )}
           <FormControl fullWidth size="small" disabled={isUsersLoading || users.length === 0}>
             <InputLabel id="assignee-select-label">Assignee</InputLabel>
             <Select
