@@ -1,8 +1,9 @@
 import type { JiraIssue } from '../../types/jira';
 
 export type MemberActivityStatus = 'Idle' | 'Normal' | 'Busy';
+type ActivityColor = 'default' | 'success' | 'warning';
 
-export function getAssignedIssuesCountByUser(issues: JiraIssue[]) {
+export function getAssignedIssuesCountByUser(issues: JiraIssue[]): Record<string, number> {
   return issues.reduce<Record<string, number>>((acc, issue) => {
     const accountId = issue.fields.assignee?.accountId;
 
@@ -28,7 +29,7 @@ export function getMemberActivityStatus(assignedIssuesCount: number): MemberActi
   return 'Busy';
 }
 
-export function getMemberActivityColor(status: MemberActivityStatus) {
+export function getMemberActivityColor(status: MemberActivityStatus): ActivityColor {
   if (status === 'Idle') {
     return 'default';
   }

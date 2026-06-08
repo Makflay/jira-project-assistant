@@ -20,7 +20,7 @@ export const isNearDeadline = (dueDate?: string | null): boolean => {
   return diffDays >= 0 && diffDays <= NEAR_DEADLINE_DAYS;
 };
 
-export function isUnassignedIssue(issue: JiraIssue) {
+export function isUnassignedIssue(issue: JiraIssue): boolean {
   return !issue.fields.assignee;
 }
 
