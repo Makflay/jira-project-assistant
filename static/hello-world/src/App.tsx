@@ -89,7 +89,7 @@ function App() {
         updateIssueAssignee(issue.key, assignee);
 
         try {
-          await assignIssue(issue.key, assignee?.accountId);
+          await assignIssue(issue.key, assignee.accountId);
         } catch {
           updateIssueAssignee(issue.key, previousAssignee);
           failedIssueKeys.push(issue.key);
@@ -102,6 +102,10 @@ function App() {
         return;
       }
       setIsAutoAssignDialogOpen(false);
+    } catch {
+      setAutoAssignError(
+        'Failed to auto-assign issues. Check Jira permissions and project access.',
+      );
     } finally {
       setIsAutoAssignSubmitting(false);
       await reloadIssues();

@@ -39,10 +39,14 @@ export function TeamPage() {
     setIsLoading(true);
     setError(null);
 
-    getProjectAssignableUsers(selectedProject.key)
-      .then(setTeamMembers)
-      .catch(() => setError('Failed to load project team members'))
-      .finally(() => setIsLoading(false));
+    try {
+      const users = await getProjectAssignableUsers(selectedProject.key);
+      setTeamMembers(users);
+    } catch {
+      setError('Failed to load project team members');
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedProject]);
 
   useEffect(() => {
@@ -98,7 +102,7 @@ export function TeamPage() {
             <ListItem key={user.accountId} divider>
               <ListItemAvatar>
                 <Avatar src={user.avatarUrls?.['48x48']} alt={user.displayName}>
-                  {user.displayName[0]}
+                  {user.displayName?.[0] ?? '?'}
                 </Avatar>
               </ListItemAvatar>
 
