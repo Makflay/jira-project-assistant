@@ -137,30 +137,30 @@ function App() {
                 <Tab label="Team" value="team" />
               </Tabs>
             </Box>
-            {activeTab === 'issues' && (
-              <>{/* Dashboard: stats, auto-assign button, issues table, dialogs */}</>
-            )}
-
             {activeTab === 'team' && <TeamPage />}
-            <ProjectStats />
-            <Button
-              variant="contained"
-              disabled={unassignedIssuesCount === 0}
-              onClick={handleOpenAutoAssignDialog}
-            >
-              Auto-assign unassigned ({unassignedIssuesCount})
-            </Button>
-            <Box>
-              {issues.length > 0 && (
-                <IssuesTable
-                  issues={issues}
-                  onAssignIssue={setIssueToAssign}
-                  onRaisePriority={(issue) => {
-                    setIssueToRaisePriority(issue);
-                  }}
-                />
-              )}
-            </Box>
+            {activeTab === 'issues' && (
+              <>
+                <ProjectStats />
+                <Button
+                  variant="contained"
+                  disabled={unassignedIssuesCount === 0}
+                  onClick={handleOpenAutoAssignDialog}
+                >
+                  Auto-assign unassigned ({unassignedIssuesCount})
+                </Button>
+                <Box>
+                  {issues.length > 0 && (
+                    <IssuesTable
+                      issues={issues}
+                      onAssignIssue={setIssueToAssign}
+                      onRaisePriority={(issue) => {
+                        setIssueToRaisePriority(issue);
+                      }}
+                    />
+                  )}
+                </Box>
+              </>
+            )}
           </Stack>
         )}
 
