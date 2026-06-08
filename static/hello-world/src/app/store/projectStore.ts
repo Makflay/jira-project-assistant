@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import type { JiraIssue, JiraProject, JiraUser, JiraPriority } from '../../types/jira';
-import { getIssuesByProject, getJiraProjects } from '../../services/jiraApi';
+import {
+  getIssuesByProject,
+  getJiraProjects,
+  getProjectAssignableUsers,
+} from '../../services/jiraApi';
 
 type ProjectStore = {
   projects: JiraProject[];
@@ -11,11 +15,16 @@ type ProjectStore = {
   projectsError: string | null;
   issuesError: string | null;
 
+  teamMembers: JiraUser[];
+  isTeamLoading: boolean;
+  teamError: string | null;
+
   loadProjects: () => Promise<void>;
   setSelectedProject: (project: JiraProject) => void;
   loadIssuesByProject: (project: JiraProject) => Promise<void>;
   updateIssueAssignee: (issueKey: string, assigne: JiraUser | null) => void;
   updateIssuePriority: (issueKey: string, priority: JiraPriority | undefined) => void;
+  loadTeamMembers: (projectKey: string) => void;
 };
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
@@ -26,6 +35,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   isIssuesLoading: false,
   projectsError: null,
   issuesError: null,
+  teamMembers: [],
+  isTeamLoading: false,
+  teamError: null,
 
   loadProjects: async () => {
     set({ isProjectsLoading: true, projectsError: null });
@@ -96,5 +108,17 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           : issue,
       ),
     }));
+  },
+  loadTeamMembers: async (projectKey: string) => {
+    set({ isTeamLoading: true, teamError: null });
+
+    try {
+      const users = await getProjectAssignableUsers(projectKey);
+      set({ teamMembers: users });
+    } catch {
+      set({ teamError: 'Failed to load project team members' });
+    } finally {
+      set({ isTeamLoading: false });
+    }
   },
 }));

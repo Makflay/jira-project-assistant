@@ -9,13 +9,11 @@ import {
   Chip,
   Button,
 } from '@mui/material';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useMemo } from 'react';
 import { EmptyState } from '../common/EmptyState';
 import { ErrorState } from '../common/ErrorState';
 import { LoadingState } from '../common/LoadingState';
 import { useProjectStore } from '../../app/store/projectStore';
-import { getProjectAssignableUsers } from '../../services/jiraApi';
-import type { JiraUser } from '../../types/jira';
 import {
   getAssignedIssuesCountByUser,
   getMemberActivityStatus,
@@ -25,33 +23,16 @@ import {
 export function TeamPage() {
   const selectedProject = useProjectStore((state) => state.selectedProject);
   const issues = useProjectStore((state) => state.issues);
-
-  const [teamMembers, setTeamMembers] = useState<JiraUser[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadTeamMembers = useCallback(async () => {
-    if (!selectedProject) {
-      setTeamMembers([]);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const users = await getProjectAssignableUsers(selectedProject.key);
-      setTeamMembers(users);
-    } catch {
-      setError('Failed to load project team members');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedProject]);
+  const teamMembers = useProjectStore((state) => state.teamMembers);
+  const isTeamLoading = useProjectStore((state) => state.isTeamLoading);
+  const teamError = useProjectStore((state) => state.teamError);
+  const loadTeamMembers = useProjectStore((state) => state.loadTeamMembers);
 
   useEffect(() => {
-    void loadTeamMembers();
-  }, [loadTeamMembers]);
+    if (selectedProject) {
+      void loadTeamMembers(selectedProject.key);
+    }
+  }, [selectedProject, loadTeamMembers]);
 
   const assignedIssuesCountByUser = useMemo(() => getAssignedIssuesCountByUser(issues), [issues]);
 
@@ -64,15 +45,15 @@ export function TeamPage() {
     );
   }
 
-  if (isLoading) {
+  if (isTeamLoading) {
     return <LoadingState message="Loading team members..." />;
   }
 
-  if (error) {
+  if (teamError) {
     return (
       <>
-        <ErrorState message={error} />
-        <Button sx={{ mt: 2 }} onClick={() => void loadTeamMembers()}>
+        <ErrorState message={teamError} />
+        <Button sx={{ mt: 2 }} onClick={() => void loadTeamMembers(selectedProject.key)}>
           Retry
         </Button>
       </>
