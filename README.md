@@ -100,11 +100,14 @@ cd jira-project-assistant
 npm install
 ```
 
-### Установить зависимости Custom UI:
+### Установка зависимостей и проверка Custom UI:
 
 ```bash
 cd static/hello-world
 npm install
+npm run lint
+npm run typecheck
+npm run build
 ```
 
 ### Forge login
